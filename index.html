@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Regenmesser</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.box {
+    font-size: 30px;
+    padding: 20px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🌧 Regenmesser</h1>
+
+<div class="box">
+Heute:
+<br>
+<span id="regen">lade...</span>
+</div>
+
+
+<script>
+
+let latitude = 50.10;
+let longitude = 10.80;
+
+
+fetch(
+`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=precipitation_sum&timezone=Europe/Berlin`
+)
+
+.then(response => response.json())
+
+.then(data => {
+
+let regen =
+data.daily.precipitation_sum[0];
+
+document.getElementById("regen").innerHTML =
+regen + " l/m²";
+
+});
+
+</script>
+
+</body>
+</html>
