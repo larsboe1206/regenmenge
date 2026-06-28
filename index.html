@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <title>Regenmesser</title>
 
 <style>
 body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     text-align: center;
     margin-top: 50px;
 }
@@ -18,37 +18,54 @@ body {
 </style>
 
 </head>
-
 <body>
 
 <h1>🌧 Regenmesser</h1>
 
 <div class="box">
-Heute:
-<br>
-<span id="regen">lade...</span>
+Niederschlag der letzten 7 Tage:
+<br><br>
+<span id="regen">Lade...</span>
 </div>
-
 
 <script>
 
-let latitude = 46.5286;
-let longitude = 8.6119;
+// Airolo (Schweiz)
+let latitude = 46.52961;
+let longitude = 8.60868;
 
+// Heutiges Datum
+let heute = new Date();
 
-fetch(
-`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=precipitation_sum&timezone=Europe/Berlin`
-)
+// Vor 7 Tagen
+let letzteWoche = new Date();
+letzteWoche.setDate(heute.getDate() - 7);
 
+// Format YYYY-MM-DD
+function formatDatum(datum) {
+    return datum.toISOString().split("T")[0];
+}
+
+let start = formatDatum(letzteWoche);
+let ende = formatDatum(heute);
+
+fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${start}&end_date=${ende}&daily=precipitation_sum&timezone=Europe/Berlin`)
 .then(response => response.json())
-
 .then(data => {
 
-let regen =
-data.daily.precipitation_sum[0];
+    let werte = data.daily.precipitation_sum;
 
-document.getElementById("regen").innerHTML =
-regen + " l/m²";
+    // Niederschlag der letzten 7 Tage aufsummieren
+    let summe = werte.reduce((a, b) => a + b, 0);
+
+    document.getElementById("regen").innerHTML =
+        summe.toFixed(1) + " l/m²";
+
+})
+.catch(error => {
+
+    document.getElementById("regen").innerHTML = "Fehler beim Laden";
+    console.error(error);
 
 });
 
