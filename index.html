@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
 <meta charset="UTF-8">
 <title>Regenmesser</title>
 
 <style>
+
 body {
     font-family: Arial, sans-serif;
     text-align: center;
@@ -17,51 +19,58 @@ body {
 }
 
 .tag {
-    margin: 10px;
+    margin: 12px;
 }
+
 </style>
 
 </head>
+
 
 <body>
 
 <h1>🌧 Regenmesser Airolo</h1>
 
-<div class="box">
-
-<span id="regen">Lade Daten...</span>
-
+<div class="box" id="regen">
+Lade Daten...
 </div>
 
 
 <script>
+
 
 // Airolo Schweiz
 let latitude = 46.52961;
 let longitude = 8.60868;
 
 
+// Anzahl Tage zurück
+let tageZurueck = 6;
+
+
 // heutiges Datum
 let heute = new Date();
 
 
-// 7 Tage zurück
-let letzteWoche = new Date();
-letzteWoche.setDate(heute.getDate() - 7);
+// Startdatum berechnen
+let startDatum = new Date();
+startDatum.setDate(heute.getDate() - tageZurueck);
 
 
-// Datum formatieren
-function datumFormat(datum) {
+// Datum in YYYY-MM-DD umwandeln
+function datumFormatieren(datum) {
+
     return datum.toISOString().split("T")[0];
+
 }
 
 
-let start = datumFormat(letzteWoche);
-let ende = datumFormat(heute);
+let start = datumFormatieren(startDatum);
+let ende = datumFormatieren(heute);
 
 
 // Wochentage
-let tage = [
+let wochentage = [
     "Sonntag",
     "Montag",
     "Dienstag",
@@ -72,17 +81,21 @@ let tage = [
 ];
 
 
+
+// Open-Meteo Archiv API
 fetch(
 `https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${start}&end_date=${ende}&daily=precipitation_sum&timezone=Europe/Berlin`
 )
 
+
 .then(response => response.json())
+
 
 .then(data => {
 
 
-    let niederschlag = data.daily.precipitation_sum;
-    let datum = data.daily.time;
+    let regenwerte = data.daily.precipitation_sum;
+    let datumswerte = data.daily.time;
 
 
     let ausgabe = "";
@@ -90,35 +103,54 @@ fetch(
     let gesamt = 0;
 
 
-    for(let i = 0; i < niederschlag.length; i++) {
+
+    for(let i = 0; i < regenwerte.length; i++) {
 
 
-        let tag = new Date(datum[i]);
+        let datum = new Date(datumswerte[i]);
 
-        let wochentag = tage[tag.getDay()];
-
-
-        let menge = niederschlag[i];
+        let tag = wochentage[datum.getDay()];
 
 
-        gesamt += menge;
+        let regen = regenwerte[i];
+
+
+        gesamt += regen;
+
 
 
         ausgabe += `
+
         <div class="tag">
-        ${wochentag} (${datum[i]}):
-        <b>${menge.toFixed(1)} l/m²</b>
+
+        ${tag}
+        (${datumswerte[i]})
+        :
+        <b>${regen.toFixed(1)} l/m²</b>
+
         </div>
+
         `;
 
     }
 
 
+
     ausgabe += `
+
     <hr>
+
+    <div>
+
+    <b>
     Gesamt letzte 7 Tage:
-    <b>${gesamt.toFixed(1)} l/m²</b>
+    ${gesamt.toFixed(1)} l/m²
+    </b>
+
+    </div>
+
     `;
+
 
 
     document.getElementById("regen").innerHTML = ausgabe;
@@ -127,17 +159,23 @@ fetch(
 })
 
 
+
 .catch(error => {
 
+
     document.getElementById("regen").innerHTML =
-    "Fehler beim Laden";
+    "Fehler beim Laden der Wetterdaten";
+
 
     console.error(error);
+
 
 });
 
 
 </script>
 
+
 </body>
+
 </html>
